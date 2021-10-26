@@ -33,18 +33,23 @@ from model import MultiLabelClassifier
 
 # yapf: disable
 parser = argparse.ArgumentParser()
-parser.add_argument("--save_dir", default='./checkpoints', type=str, help="The output directory where the model checkpoints will be written.")
-parser.add_argument("--max_seq_length", default=128, type=int, help="The maximum total input sequence length after tokenization. "
-    "Sequences longer than this will be truncated, sequences shorter will be padded.")
+parser.add_argument("--save_dir", default='/root/paddlejob/workspace/output/', type=str,
+                    help="The output directory where the model checkpoints will be written.")
+parser.add_argument("--max_seq_length", default=128, type=int,
+                    help="The maximum total input sequence length after tokenization. "
+                         "Sequences longer than this will be truncated, sequences shorter will be padded.")
 parser.add_argument("--batch_size", default=32, type=int, help="Batch size per GPU/CPU for training.")
 parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
 parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
 parser.add_argument("--epochs", default=3, type=int, help="Total number of training epochs to perform.")
-parser.add_argument("--warmup_proportion", default=0.0, type=float, help="Linear warmup proption over the training process.")
+parser.add_argument("--warmup_proportion", default=0.0, type=float,
+                    help="Linear warmup proption over the training process.")
 parser.add_argument("--init_from_ckpt", type=str, default=None, help="The path of checkpoint to be loaded.")
 parser.add_argument("--seed", type=int, default=1000, help="random seed for initialization")
-parser.add_argument("--device", choices=["cpu", "gpu", "xpu"], default="gpu", help="Select which device to train model, defaults to gpu.")
-parser.add_argument("--data_path", type=str, default="./data", help="The path of datasets to be loaded")
+parser.add_argument("--device", choices=["cpu", "gpu", "xpu"], default="gpu",
+                    help="Select which device to train model, defaults to gpu.")
+parser.add_argument("--data_path", type=str, default="/root/paddlejob/workspace/train_data/datasets/data108440/",
+                    help="The path of datasets to be loaded")
 args = parser.parse_args()
 # yapf: enable
 
