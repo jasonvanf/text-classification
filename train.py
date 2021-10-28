@@ -27,7 +27,7 @@ from paddlenlp.data import Stack, Tuple, Pad
 from paddlenlp.datasets import load_dataset
 from paddlenlp.transformers import LinearDecayWithWarmup
 
-from data import convert_example, create_dataloader, read_custom_data
+from data import convert_example, create_dataloader, read_excel_data
 from metric import MultiLabelReport
 from model import MultiLabelClassifier
 
@@ -51,6 +51,8 @@ parser.add_argument("--device", choices=["cpu", "gpu", "xpu"], default="gpu",
 parser.add_argument("--data_path", type=str, default="/root/paddlejob/workspace/train_data/datasets/data108440/",
                     help="The path of datasets to be loaded")
 args = parser.parse_args()
+
+
 # yapf: enable
 
 
@@ -97,8 +99,8 @@ def do_train():
     set_seed(args.seed)
 
     # Load train dataset.
-    file_name = 'train.csv'
-    train_ds = load_dataset(read_custom_data, filename=os.path.join(
+    file_name = 'train.xlsx'
+    train_ds = load_dataset(read_excel_data, filename=os.path.join(
         args.data_path, file_name), is_test=False, lazy=False)
 
     pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-base-uncased")
@@ -128,8 +130,8 @@ def do_train():
     model = paddle.DataParallel(model)
     num_training_steps = len(train_data_loader) * args.epochs
 
-    lr_scheduler = LinearDecayWithWarmup(args.learning_rate, 
-        num_training_steps, args.warmup_proportion)
+    lr_scheduler = LinearDecayWithWarmup(args.learning_rate,
+                                         num_training_steps, args.warmup_proportion)
 
     # Generate parameter names needed to perform weight decay.
     # All bias and LayerNorm parameters are excluded.
@@ -165,10 +167,7 @@ def do_train():
                     % (global_step, epoch, step, loss, auc, f1_score,
                        10 / (time.time() - tic_train)))
                 tic_train = time.time()
-            loss.backward()
-            optimizer.step()
-            lr_scheduler.step()
-            optimizer.clear_grad()
+
             if global_step % 100 == 0 and rank == 0:
                 save_dir = os.path.join(args.save_dir, "model_%d" % global_step)
                 if not os.path.exists(save_dir):
@@ -176,6 +175,11 @@ def do_train():
                 save_param_path = os.path.join(save_dir, "model_state.pdparams")
                 paddle.save(model.state_dict(), save_param_path)
                 tokenizer.save_pretrained(save_dir)
+
+            loss.backward()
+            optimizer.step()
+            lr_scheduler.step()
+            optimizer.clear_grad()
 
 
 if __name__ == "__main__":

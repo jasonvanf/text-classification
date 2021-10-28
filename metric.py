@@ -22,6 +22,7 @@ class MultiLabelReport(Metric):
     """
     AUC and F1Score for multi-label text classification task.
     """
+
     def __init__(self, name='MultiLabelReport', average='micro'):
         super(MultiLabelReport, self).__init__()
         self.average = average

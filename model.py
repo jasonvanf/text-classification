@@ -14,6 +14,7 @@
 
 import paddle.nn as nn
 
+
 class MultiLabelClassifier(nn.Layer):
     def __init__(self, pretrained_model, num_labels=2, dropout=None):
         super(MultiLabelClassifier, self).__init__()

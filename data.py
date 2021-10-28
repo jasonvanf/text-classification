@@ -95,6 +95,18 @@ def read_custom_data(filename, is_test=False):
             yield {"text": clean_text(text), "label": label}
 
 
+def read_excel_data(filename, is_test=False):
+    """Reads data."""
+    data = pd.read_excel(filename)
+    for index, line in data.iterrows():
+        if is_test:
+            text = line['JQNR']
+            yield {"text": clean_text(text), "label": ""}
+        else:
+            text, label = line['JQNR'], line['JQLX']
+            yield {"text": clean_text(text), "label": label}
+
+
 def clean_text(text):
     text = text.replace("\r", "").replace("\n", "")
     text = re.sub(r"\\n\n", ".", text)
