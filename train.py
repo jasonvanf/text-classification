@@ -33,7 +33,7 @@ from model import MultiLabelClassifier
 
 # yapf: disable
 parser = argparse.ArgumentParser()
-parser.add_argument("--save_dir", default='/root/paddlejob/workspace/output/', type=str,
+parser.add_argument("--save_dir", default='./output/', type=str,
                     help="The output directory where the model checkpoints will be written.")
 parser.add_argument("--max_seq_length", default=128, type=int,
                     help="The maximum total input sequence length after tokenization. "
@@ -48,7 +48,7 @@ parser.add_argument("--init_from_ckpt", type=str, default=None, help="The path o
 parser.add_argument("--seed", type=int, default=1000, help="random seed for initialization")
 parser.add_argument("--device", choices=["cpu", "gpu", "xpu"], default="gpu",
                     help="Select which device to train model, defaults to gpu.")
-parser.add_argument("--data_path", type=str, default="/root/paddlejob/workspace/train_data/datasets/data108440/",
+parser.add_argument("--data_path", type=str, default="./data/",
                     help="The path of datasets to be loaded")
 args = parser.parse_args()
 
@@ -101,10 +101,10 @@ def do_train():
     # Load train dataset.
     file_name = 'train.xlsx'
     train_ds = load_dataset(read_excel_data, filename=os.path.join(
-        args.data_path, file_name), is_test=False, lazy=False)
+        args.data_path, file_name), lazy=False)
 
-    pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-base-uncased")
-    tokenizer = ppnlp.transformers.BertTokenizer.from_pretrained('bert-base-uncased')
+    pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-wwm-ext-chinese")
+    tokenizer = ppnlp.transformers.BertTokenizer.from_pretrained('bert-wwm-ext-chinese')
 
     trans_func = partial(
         convert_example,
@@ -113,7 +113,7 @@ def do_train():
     batchify_fn = lambda samples, fn=Tuple(
         Pad(axis=0, pad_val=tokenizer.pad_token_id),  # input
         Pad(axis=0, pad_val=tokenizer.pad_token_type_id),  # segment
-        Stack(dtype='float32')  # label
+        Stack(dtype='int64')  # label
     ): [data for data in fn(samples)]
     train_data_loader = create_dataloader(
         train_ds,

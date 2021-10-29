@@ -52,3 +52,5 @@ wheels/
 
 # Data science
 .ipynb_checkpoints/
+data/
+output/

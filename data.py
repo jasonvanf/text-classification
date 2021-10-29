@@ -13,9 +13,18 @@
 # limitations under the License.
 
 import re
+import random
+
 import numpy as np
 import pandas as pd
 import paddle
+from paddlenlp.datasets import MapDataset
+
+class_code = {
+    "火灾扑救": 1,
+    "抢险救援": 2,
+    "社会救助": 3
+}
 
 
 def convert_example(example, tokenizer, max_seq_length=512, is_test=False):
@@ -55,7 +64,7 @@ def convert_example(example, tokenizer, max_seq_length=512, is_test=False):
     token_type_ids = encoded_inputs["token_type_ids"]
 
     if not is_test:
-        label = np.array(example["label"], dtype="float32")
+        label = np.array(example["label"], dtype="int64")
         return input_ids, token_type_ids, label
     return input_ids, token_type_ids
 
@@ -104,7 +113,8 @@ def read_excel_data(filename, is_test=False):
             yield {"text": clean_text(text), "label": ""}
         else:
             text, label = line['JQNR'], line['JQLX']
-            yield {"text": clean_text(text), "label": label}
+            label_code = class_code[label] if label in class_code else 0
+            yield {"text": clean_text(text), "label": label_code}
 
 
 def clean_text(text):
@@ -127,3 +137,78 @@ def write_test_results(filename, results, label_info):
     df = pd.DataFrame(results_dict)
     df.to_csv("sample_test.csv", index=False)
     print("Test results saved")
+
+
+class DataProcessor(object):
+    """Base class for data converters for sequence classification datasets."""
+
+    def __init__(self, negative_num=1):
+        # Random negative sample number for efl strategy
+        self.neg_num = negative_num
+
+    def get_train_datasets(self, datasets, task_label_description):
+        """See base class."""
+        return self._create_examples(datasets, "train", task_label_description)
+
+    def get_dev_datasets(self, datasets, task_label_description):
+        """See base class."""
+        return self._create_examples(datasets, "dev", task_label_description)
+
+    def get_test_datasets(self, datasets, task_label_description):
+        """See base class."""
+        return self._create_examples(datasets, "test", task_label_description)
+
+
+class FireProcessor(DataProcessor):
+    """Processor for the fire dataset."""
+
+    def _create_examples(self, datasets, phase, task_label_description):
+        """Creates examples for the training and dev sets."""
+
+        examples = []
+        if phase == "train":
+            for example in datasets:
+                true_label = str(example["label"])
+                neg_examples = []
+                for label, label_description in task_label_description.items():
+                    new_example = dict()
+                    new_example["sentence1"] = example['sentence']
+                    new_example["sentence2"] = label_description
+
+                    # Todo: handle imbalanced example, maybe hurt model performance
+                    if true_label == label:
+                        new_example["label"] = 1
+                        examples.append(new_example)
+                    else:
+                        new_example["label"] = 0
+                        neg_examples.append(new_example)
+                neg_examples = random.sample(neg_examples, self.neg_num)
+                examples.extend(neg_examples)
+
+        elif phase == "dev":
+            for example in datasets:
+                true_label = str(example["label"])
+                for label, label_description in task_label_description.items():
+                    new_example = dict()
+                    new_example["sentence1"] = example['sentence']
+                    new_example["sentence2"] = label_description
+
+                    # Get true_label's index at task_label_description for evaluate
+                    true_label_index = list(task_label_description.keys()).index(true_label)
+                    new_example["label"] = true_label_index
+                    examples.append(new_example)
+
+        elif phase == "test":
+            for example in datasets:
+                for label, label_description in task_label_description.items():
+                    new_example = dict()
+                    new_example["sentence1"] = example['sentence']
+                    new_example["sentence2"] = label_description
+                    examples.append(new_example)
+
+        return MapDataset(examples)
+
+
+processor_dict = {
+    "fire": FireProcessor
+}
