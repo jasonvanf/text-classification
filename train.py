@@ -33,7 +33,7 @@ from model import MultiLabelClassifier
 
 # yapf: disable
 parser = argparse.ArgumentParser()
-parser.add_argument("--save_dir", default='./output/', type=str,
+parser.add_argument("--save_dir", default='./checkpoint/', type=str,
                     help="The output directory where the model checkpoints will be written.")
 parser.add_argument("--max_seq_length", default=128, type=int,
                     help="The maximum total input sequence length after tokenization. "
@@ -113,7 +113,7 @@ def do_train():
     batchify_fn = lambda samples, fn=Tuple(
         Pad(axis=0, pad_val=tokenizer.pad_token_id),  # input
         Pad(axis=0, pad_val=tokenizer.pad_token_type_id),  # segment
-        Stack(dtype='int64')  # label
+        Stack(dtype='float32')  # label
     ): [data for data in fn(samples)]
     train_data_loader = create_dataloader(
         train_ds,

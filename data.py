@@ -21,9 +21,9 @@ import paddle
 from paddlenlp.datasets import MapDataset
 
 class_code = {
-    "火灾扑救": 1,
-    "抢险救援": 2,
-    "社会救助": 3
+    "火灾扑救": 0,
+    "抢险救援": 1,
+    "社会救助": 2
 }
 
 
@@ -64,7 +64,7 @@ def convert_example(example, tokenizer, max_seq_length=512, is_test=False):
     token_type_ids = encoded_inputs["token_type_ids"]
 
     if not is_test:
-        label = np.array(example["label"], dtype="int64")
+        label = np.array(example["label"], dtype="float32")
         return input_ids, token_type_ids, label
     return input_ids, token_type_ids
 
@@ -113,7 +113,10 @@ def read_excel_data(filename, is_test=False):
             yield {"text": clean_text(text), "label": ""}
         else:
             text, label = line['JQNR'], line['JQLX']
-            label_code = class_code[label] if label in class_code else 0
+            # label_code = class_code[label] if label in class_code else 0
+            label_code = [0] * 3
+            if label in class_code:
+                label_code[class_code[label]] = 1
             yield {"text": clean_text(text), "label": label_code}
 
 
@@ -136,6 +139,25 @@ def write_test_results(filename, results, label_info):
                 results_dict[key] = result
     df = pd.DataFrame(results_dict)
     df.to_csv("sample_test.csv", index=False)
+    print("Test results saved")
+
+
+def write_excel_results(filename, results, label_info):
+    """write test results"""
+    data = pd.read_excel(filename)
+    qids = [line['JQNR'] for index, line in data.iterrows()]
+    results_dict = {k: [] for k in label_info}
+    results_dict['警情内容'] = qids
+    results = list(map(list, zip(*results)))
+    for key in results_dict:
+        if key != '警情内容':
+            results_dict[key] = results[class_code[key]]
+
+    df = pd.DataFrame(results_dict)
+    df_class = df.loc[:, label_info]
+    df['算法预测结果'] = df_class.idxmax(axis=1)
+    with pd.ExcelWriter('sample_test.xlsx') as writer:
+        df.to_excel(writer, index=False)
     print("Test results saved")
 
 

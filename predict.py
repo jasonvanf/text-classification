@@ -22,7 +22,7 @@ import paddlenlp as ppnlp
 from paddlenlp.data import Tuple, Pad
 from paddlenlp.datasets import load_dataset
 
-from data import convert_example, create_dataloader, read_custom_data, write_test_results
+from data import convert_example, create_dataloader, read_excel_data, write_excel_results
 from model import MultiLabelClassifier
 
 # yapf: disable
@@ -72,17 +72,17 @@ if __name__ == "__main__":
     paddle.set_device(args.device)
 
     # Load train dataset.
-    file_name = 'test.csv'
-    test_ds = load_dataset(read_custom_data, filename=os.path.join(args.data_path, file_name), is_test=True, lazy=False)
+    file_name = 'test.xlsx'
+    test_ds = load_dataset(read_excel_data, filename=os.path.join(args.data_path, file_name), lazy=False)
 
     # The dataset labels
-    label_info = ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
+    label_info = ['火灾扑救', '抢险救援', '社会救助']
 
     # Load pretrained model
-    pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-base-uncased")
+    pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-wwm-ext-chinese")
 
     # Load bert tokenizer
-    tokenizer = ppnlp.transformers.BertTokenizer.from_pretrained('bert-base-uncased')
+    tokenizer = ppnlp.transformers.BertTokenizer.from_pretrained('bert-wwm-ext-chinese')
 
     model = MultiLabelClassifier(pretrained_model, num_labels=len(label_info))
 
@@ -110,5 +110,5 @@ if __name__ == "__main__":
     results = predict(model, test_data_loader, args.batch_size)
     filename = os.path.join(args.data_path, file_name)
 
-    # Write test result into csv file
-    write_test_results(filename, results, label_info)
+    # Write test result into excel file
+    write_excel_results(filename, results, label_info)
