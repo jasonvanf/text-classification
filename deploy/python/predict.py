@@ -19,10 +19,9 @@ import paddle
 import paddle.nn.functional as F
 from paddlenlp.data import Tuple, Pad
 from paddlenlp.transformers import BertTokenizer
+from data import convert_example
 
 sys.path.append('./')
-
-from data import convert_example
 
 # yapf: disable
 parser = argparse.ArgumentParser()
