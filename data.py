@@ -25,6 +25,15 @@ class_code = {
     "抢险救援": 1,
     "社会救助": 2
 }
+# class_code = {
+#     "火灾扑救": 1,
+#     "灾害事故抢险救援": 2,
+#     "反恐排爆": 3,
+#     "公务执勤": 4,
+#     "社会救助": 5,
+#     "其他出动": 6,
+#     "虚假警": 7,
+# }
 
 
 def convert_example(example, tokenizer, max_seq_length=512, is_test=False):
@@ -114,7 +123,7 @@ def read_excel_data(filename, is_test=False):
         else:
             text, label = line['JQNR'], line['JQLX']
             # label_code = class_code[label] if label in class_code else 0
-            label_code = [0] * 3
+            label_code = [0] * len(class_code)
             if label in class_code:
                 label_code[class_code[label]] = 1
             yield {"text": clean_text(text), "label": label_code}
