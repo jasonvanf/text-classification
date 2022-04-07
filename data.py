@@ -115,18 +115,21 @@ def read_custom_data(filename, is_test=False):
 
 def read_excel_data(filename, is_test=False):
     """Reads data."""
-    data = pd.read_excel(filename)
+    data = pd.read_excel(
+        filename,
+        dtype={'JQNR': str},
+    )
     for index, line in data.iterrows():
         if is_test:
             text = line['JQNR']
-            yield {"text": clean_text(text), "label": ""}
+            yield {"text": clean_text(str(text)), "label": ""}
         else:
             text, label = line['JQNR'], line['JQLX']
             # label_code = class_code[label] if label in class_code else 0
             label_code = [0] * len(class_code)
             if label in class_code:
                 label_code[class_code[label]] = 1
-            yield {"text": clean_text(text), "label": label_code}
+            yield {"text": clean_text(str(text)), "label": label_code}
 
 
 def clean_text(text):
@@ -153,7 +156,10 @@ def write_test_results(filename, results, label_info):
 
 def write_excel_results(filename, results, label_info):
     """write test results"""
-    data = pd.read_excel(filename)
+    data = pd.read_excel(
+        filename,
+        dtype={'JQNR': str},
+    )
     qids = [line['JQNR'] for index, line in data.iterrows()]
     results_dict = {k: [] for k in label_info}
     results_dict['警情内容'] = qids
