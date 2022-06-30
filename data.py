@@ -20,11 +20,11 @@ import pandas as pd
 import paddle
 from paddlenlp.datasets import MapDataset
 
-class_code = {
-    "火灾扑救": 0,
-    "抢险救援": 1,
-    "社会救助": 2
-}
+# class_code = {
+#     "火灾扑救": 0,
+#     "抢险救援": 1,
+#     "社会救助": 2
+# }
 # class_code = {
 #     "火灾扑救": 1,
 #     "灾害事故抢险救援": 2,
@@ -34,6 +34,12 @@ class_code = {
 #     "其他出动": 6,
 #     "虚假警": 7,
 # }
+class_code = {
+    "非建构筑物": 1,
+    "交通工具": 2,
+    "建构筑物": 3,
+    "垃圾及废弃物": 4
+}
 
 
 def convert_example(example, tokenizer, max_seq_length=512, is_test=False):
@@ -127,8 +133,8 @@ def read_excel_data(filename, is_test=False):
             text, label = line['JQNR'], line['JQLX']
             # label_code = class_code[label] if label in class_code else 0
             label_code = [0] * len(class_code)
-            if label in class_code:
-                label_code[class_code[label]] = 1
+            if label in class_code.values():
+                label_code[label - 1] = 1
             yield {"text": clean_text(str(text)), "label": label_code}
 
 

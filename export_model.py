@@ -19,6 +19,7 @@ import paddle
 import paddlenlp as ppnlp
 
 from model import MultiLabelClassifier
+from data import class_code
 
 # yapf: disable
 parser = argparse.ArgumentParser()
@@ -31,10 +32,11 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
     # The number of labels should be in accordance with the training dataset.
-    label_info = ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
+    # label_info = ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
+    label_info = class_code.keys()
 
     # Load pretrained model
-    pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-base-uncased")
+    pretrained_model = ppnlp.transformers.BertModel.from_pretrained("bert-wwm-ext-chinese")
 
     model = MultiLabelClassifier(pretrained_model, num_labels=len(label_info))
 
@@ -54,4 +56,5 @@ if __name__ == "__main__":
                 shape=[None, None], dtype="int64")  # segment_ids
         ])
     # Save in static graph model.
-    paddle.jit.save(model, args.output_path)
+    save_path = os.path.join(args.output_path, "inference")
+    paddle.jit.save(model, save_path)
